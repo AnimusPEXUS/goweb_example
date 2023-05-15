@@ -67,7 +67,6 @@ func (self *Controller) HelloPage(
     <input type="text" name="name" />
 	<input type="submit" /> (send using GET method)
   </form>
- </body>
   <form action="/hello" method="POST">
     <input type="text" name="name" />
 	<input type="submit" /> (send using POST method)
