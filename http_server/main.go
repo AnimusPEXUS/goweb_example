@@ -28,7 +28,8 @@ func (self *Controller) HelloPage(
 
 	switch rq.Method {
 	default:
-		additional_message = fmt.Sprintf("unsupported method: %s", rq.Method)
+		additional_message =
+			fmt.Sprintf("unsupported method: %s", rq.Method)
 	case "GET":
 		query := rq.URL.Query()
 
@@ -49,7 +50,8 @@ func (self *Controller) HelloPage(
 	}
 
 	if additional_message == "" {
-		additional_message = fmt.Sprintf("(Used method is %s)", rq.Method)
+		additional_message =
+			fmt.Sprintf("(Used method is %s)", rq.Method)
 	}
 
 	rw.Write(
