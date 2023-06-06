@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"html"
 	"net/http"
+	"strings"
 
-	"github.com/dimfeld/httptreemux/v5"
+	// "github.com/dimfeld/httptreemux/v5"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 type Controller struct {
@@ -15,7 +18,7 @@ type Controller struct {
 func (self *Controller) HelloPage(
 	rw http.ResponseWriter,
 	rq *http.Request,
-	params map[string]string,
+	params httprouter.Params,
 ) {
 	var name_part string
 
@@ -83,13 +86,51 @@ func (self *Controller) HelloPage(
 	)
 }
 
+// func (self *Controller) WasmExamplePage(
+// 	rw http.ResponseWriter,
+// 	rq *http.Request,
+// 	// args map[string]string,
+// ) {
+// 	http.ServeFile(rw, rq, "./static/wasm.html")
+// 	return
+// }
+
 func main() {
 
 	ctl := &Controller{}
 
-	router := httptreemux.New()
+	router := httprouter.New()
+
 	router.GET("/hello", ctl.HelloPage)
 	router.POST("/hello", ctl.HelloPage)
+
+	router.Handler(
+		"GET",
+		"/wasm_example",
+		http.RedirectHandler("/wasm_example/", 301),
+	)
+
+	// router.Handler(
+	// 	"GET",
+	// 	"/wasm_example/",
+	// 	http.FileServer(http.Dir("./static/")),
+	// )
+
+	router.Handle(
+		"GET",
+		"/wasm_example/*path",
+		func(
+			rw http.ResponseWriter,
+			rq *http.Request,
+			params httprouter.Params,
+		) {
+			// params := httprouter.ParamsFromContext(r.Context())
+			p := params.ByName("path")
+			p = strings.ReplaceAll(p, "/", "")
+			p = strings.Trim(p, ".")
+			http.ServeFile(rw, rq, "./static/"+p)
+		},
+	)
 
 	s := &http.Server{
 		Addr:    ":8080",

@@ -1,7 +1,7 @@
-export GONOPROXY=github.com/AnimusPEXUS/*
+export GONOPROXY="github.com/AnimusPEXUS/*"
 
-all: get
-
-get: 
+all:
+		$(MAKE) -C static_src
 		go get -u -v "./..."
 		go mod tidy
+		go build
