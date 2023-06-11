@@ -1,13 +1,16 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html"
 	"net/http"
 	"strings"
+	"sync"
 
-	// "github.com/dimfeld/httptreemux/v5"
+	"golang.org/x/net/websocket"
 
+	"github.com/AnimusPEXUS/gojsonrpc2"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -86,6 +89,85 @@ func (self *Controller) HelloPage(
 	)
 }
 
+func (self *Controller) WSHandlerJRPC2(c *websocket.Conn) {
+
+	defer c.Close()
+
+	codec := &websocket.Codec{}
+
+	node := gojsonrpc2.NewJSONRPC2Node()
+	node.OnRequestCB = func(msg *gojsonrpc2.Message) (error, error) {
+		if msg.IsNotification() {
+			fmt.Println(
+				"got notification:", msg.Method, "params:", msg.Params,
+			)
+		}
+		return nil, nil
+	}
+
+	defer node.Close()
+
+	var (
+		stop_flag     = false
+		rec_err       error
+		send_err      error
+		rec_proto_err error
+	)
+
+	wg := &sync.WaitGroup{}
+
+	node.PushMessageToOutsideCB = func(data []byte) error {
+		wg.Add(1)
+		defer wg.Done()
+
+		if stop_flag {
+			return errors.New("stop_flag is true")
+		}
+
+		err := codec.Send(c, data)
+		if err != nil {
+			send_err = err
+			return err
+		}
+
+		return nil
+	}
+
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+		var data []byte
+		for true {
+			if stop_flag {
+				return
+			}
+			data = make([]byte, 0)
+			err := codec.Receive(c, &data)
+			if err != nil {
+				rec_err = err
+				stop_flag = true
+				return
+			}
+
+			proto_err, err := node.PushMessageFromOutside(data)
+			if proto_err != nil || err != nil {
+				rec_proto_err = proto_err
+				rec_err = err
+				stop_flag = true
+				return
+			}
+		}
+	}()
+
+	wg.Wait()
+
+	fmt.Println("rec_err:", rec_err)
+	fmt.Println("send_err:", send_err)
+	fmt.Println("rec_proto_err:", rec_proto_err)
+
+}
+
 // func (self *Controller) WasmExamplePage(
 // 	rw http.ResponseWriter,
 // 	rq *http.Request,
@@ -110,11 +192,18 @@ func main() {
 		http.RedirectHandler("/wasm_example/", 301),
 	)
 
-	// router.Handler(
-	// 	"GET",
-	// 	"/wasm_example/",
-	// 	http.FileServer(http.Dir("./static/")),
-	// )
+	router.HandlerFunc(
+		"GET",
+		"/ws_jrpc2",
+		func(
+			rw http.ResponseWriter,
+			rq *http.Request,
+		) {
+			s := &websocket.Server{}
+			s.Handler = ctl.WSHandlerJRPC2
+			s.ServeHTTP(rw, rq)
+		},
+	)
 
 	router.Handle(
 		"GET",

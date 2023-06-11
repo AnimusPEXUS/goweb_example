@@ -6,7 +6,6 @@ import (
 
 	"github.com/AnimusPEXUS/gojstools/elementtreeconstructor"
 	"github.com/AnimusPEXUS/gojstools/webapi/dom"
-	"github.com/AnimusPEXUS/gojstools/widgetcollection"
 )
 
 type MainPage struct {
@@ -33,15 +32,7 @@ func (self *MainPage) RenderMainPage() {
 		window_document,
 	)
 
-	login_form := widgetcollection.NewLoginPasswordForm00(
-		etc,
-		"", "",
-		true,
-		func() { log.Println("something edited") },
-		func() { log.Println("login edited") },
-		func() { log.Println("password edited") },
-		func() { log.Println("button clicked") },
-	)
+	jrpc2_tester := NewJRPC2Tester(etc)
 
 	new_html := etc.CreateElement("html").
 		AppendChildren(
@@ -54,7 +45,7 @@ func (self *MainPage) RenderMainPage() {
 				),
 			etc.CreateElement("body").
 				AppendChildren(
-					login_form.Element,
+					jrpc2_tester.Element,
 				),
 		)
 

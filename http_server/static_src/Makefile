@@ -1,8 +1,11 @@
 export GOOS=js
 export GOARCH=wasm
 
-all:
-		-rm page.wasm
+all: get build
+
+get:
 		go get -u -v "./..."
 		go mod tidy
-		go build -v -o ../static/page.wasm
+
+build:
+		go build -v -x -o ../static/page.wasm
