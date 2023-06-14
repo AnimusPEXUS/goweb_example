@@ -1,10 +1,10 @@
-module github.com/AnimusPEXUS/goweb_example/http_server/page
+module github.com/AnimusPEXUS/goweb_example/http_server/static_src
 
 go 1.20
 
 require (
 	github.com/AnimusPEXUS/gojsonrpc2 v0.0.0-20230604165602-032924975eaf
-	github.com/AnimusPEXUS/gojstools v0.0.0-20230607000731-decdea3fbef4
+	github.com/AnimusPEXUS/gojstools v0.0.0-20230614051003-bf83301e481b
 )
 
 require (

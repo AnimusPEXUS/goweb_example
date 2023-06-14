@@ -1,9 +1,11 @@
 package main
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"html"
+	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -221,9 +223,20 @@ func main() {
 		},
 	)
 
+	certificate, err := tls.LoadX509KeyPair("./tls/cert.pem", "./tls/key.pem")
+	if err != nil {
+		log.Fatal("error loading keyfile or certificate: ", err)
+	}
+
+	tls_cfg := &tls.Config{
+		Certificates:       []tls.Certificate{certificate},
+		InsecureSkipVerify: true,
+	}
+
 	s := &http.Server{
-		Addr:    ":8080",
-		Handler: router,
+		Addr:      ":8080",
+		Handler:   router,
+		TLSConfig: tls_cfg,
 	}
 
 	s.ListenAndServe()

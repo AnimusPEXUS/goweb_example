@@ -1,2 +1,3 @@
 /http_server/http_server
 /http_server/static/page.wasm
+/http_server/tls/*

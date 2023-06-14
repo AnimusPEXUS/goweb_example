@@ -1,3 +1,4 @@
+export GONOPROXY="github.com/AnimusPEXUS/*"
 export GOOS=js
 export GOARCH=wasm
 

@@ -35,6 +35,7 @@ func (self *MainPage) RenderMainPage() {
 	jrpc2_tester := NewJRPC2Tester(etc)
 
 	new_html := etc.CreateElement("html").
+		SetStyle("font-size", "10px").
 		AppendChildren(
 			etc.CreateElement("head").
 				AppendChildren(

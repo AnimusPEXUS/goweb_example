@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/AnimusPEXUS/goweb_example/http_server/page/widgets"
+	"github.com/AnimusPEXUS/goweb_example/http_server/static_src/widgets"
 )
 
 func main() {
