@@ -1,11 +1,13 @@
 package widgets
 
 import (
+	"errors"
 	"fmt"
 	"syscall/js"
 
 	"github.com/AnimusPEXUS/gojsonrpc2"
 	"github.com/AnimusPEXUS/gojstools/elementtreeconstructor"
+	"github.com/AnimusPEXUS/gojstools/std/array"
 	"github.com/AnimusPEXUS/gojstools/webapi/dom"
 	"github.com/AnimusPEXUS/gojstools/webapi/events"
 	"github.com/AnimusPEXUS/gojstools/webapi/ws"
@@ -16,6 +18,8 @@ type JRPC2Tester struct {
 
 	ws   *ws.WS
 	node *gojsonrpc2.JSONRPC2Node
+
+	button_close *elementtreeconstructor.ElementMutator
 
 	connection_log *elementtreeconstructor.ElementMutator
 
@@ -34,67 +38,28 @@ func NewJRPC2Tester(
 	self.Element.SetStyle("padding", "5px")
 
 	button_connect := self.etc.CreateElement("button")
+	button_close := self.etc.CreateElement("button")
+	button_ping := self.etc.CreateElement("button")
+
+	self.button_close = button_close
+
 	button_connect.AppendChildren(self.etc.CreateTextNode("Connect"))
 	button_connect.Set(
 		"onclick",
 		js.FuncOf(
 			func(this js.Value, args []js.Value) any {
 				var err error
+
+				self.cleanupWSAndNode()
+
 				self.ws, err = ws.NewWS(
 					&ws.WSOptions{
-						URL: &([]string{"http://localhost:8080/ws_jrpc2"}[0]),
+						URL: &([]string{"wss://localhost:8080/ws_jrpc2"}[0]),
 
-						OnClose: func(*events.CloseEvent) {
-							self.AppendToConnectionLog(
-								self.etc.CreateTextNode(
-									fmt.Sprint(
-										"WS closed",
-										err,
-									),
-								),
-							)
-						},
-						OnError: func(*events.ErrorEvent) {
-							self.AppendToConnectionLog(
-								self.etc.CreateTextNode(
-									fmt.Sprint(
-										"WS error",
-										err,
-									),
-								),
-							)
-						},
-						OnMessage: func(e *events.MessageEvent) {
-							self.AppendToConnectionLog(
-								self.etc.CreateTextNode(
-									fmt.Sprint(
-										"WS message",
-										err,
-									),
-								),
-							)
-							val, err := e.GetData()
-							self.AppendToConnectionLog(
-								self.etc.CreateElement("pre").
-									AppendChildren(
-										self.etc.CreateTextNode(
-											fmt.Sprint(
-												"val:", val, "err:", err,
-											),
-										),
-									),
-							)
-						},
-						OnOpen: func(*events.Event) {
-							self.AppendToConnectionLog(
-								self.etc.CreateTextNode(
-									fmt.Sprint(
-										"WS open",
-										err,
-									),
-								),
-							)
-						},
+						OnClose:   self.OnWSClose,
+						OnError:   self.OnWSError,
+						OnMessage: self.OnWSMessage,
+						OnOpen:    self.OnWSOpen,
 					},
 				)
 				if err != nil {
@@ -108,14 +73,48 @@ func NewJRPC2Tester(
 					)
 					return nil
 				}
-				self.node = gojsonrpc2.NewJSONRPC2Node()
 				return nil
 			},
 		),
 	)
 
-	button_close := self.etc.CreateElement("button")
 	button_close.AppendChildren(self.etc.CreateTextNode("Close"))
+	button_close.Set("disabled", true)
+	button_close.Set(
+		"onclick",
+		js.FuncOf(
+			func(this js.Value, args []js.Value) any {
+				self.cleanupWSAndNode()
+				return nil
+			},
+		),
+	)
+
+	button_ping.AppendChildren(self.etc.CreateTextNode("Ping"))
+	button_ping.Set(
+		"onclick",
+		js.FuncOf(
+			func(this js.Value, args []js.Value) any {
+				self.AppendToConnectionLogPreText(
+					"self.ws ==", self.ws,
+					"self.node ==", self.node,
+				)
+				if self.ws != nil && self.node != nil {
+					err := self.node.SendNotification(
+						&gojsonrpc2.Message{
+							Request: gojsonrpc2.Request{
+								Method: "ping",
+							},
+						},
+					)
+
+					self.AppendToConnectionLogPreText("ping error:", err)
+
+				}
+				return nil
+			},
+		),
+	)
 
 	self.Element.AppendChildren(
 		self.etc.CreateElement("div").AppendChildren(
@@ -125,6 +124,8 @@ func NewJRPC2Tester(
 			button_connect,
 			self.etc.CreateTextNode(" "),
 			button_close,
+			self.etc.CreateTextNode(" "),
+			button_ping,
 		),
 		self.etc.CreateElement("div").
 			AppendChildren(
@@ -149,4 +150,138 @@ func (self *JRPC2Tester) AppendToConnectionLog(
 		),
 	)
 	self.connection_log.Set("scrollTop", self.connection_log.Get("scrollTopMax"))
+}
+
+func (self *JRPC2Tester) AppendToConnectionLogText(
+	v ...any,
+) {
+	x := self.etc.CreateTextNode(
+		fmt.Sprint(v...),
+	)
+
+	self.AppendToConnectionLog(x)
+}
+
+func (self *JRPC2Tester) AppendToConnectionLogPreText(
+	v ...any,
+) {
+	x := self.etc.CreateElement("pre").AppendChildren(
+		self.etc.CreateTextNode(
+			fmt.Sprint(v...),
+		),
+	)
+
+	self.AppendToConnectionLog(x)
+}
+
+func (self *JRPC2Tester) cleanupWSAndNode() {
+	if self.node != nil {
+		self.node.Close()
+		self.node = nil
+	}
+
+	if self.ws != nil {
+		self.ws.Close()
+		self.ws = nil
+	}
+}
+
+func (self *JRPC2Tester) OnWSClose(e *events.CloseEvent) {
+	self.AppendToConnectionLog(
+		self.etc.CreateTextNode(
+			fmt.Sprint("WS closed"),
+		),
+	)
+	self.button_close.Set("disabled", true)
+	self.cleanupWSAndNode()
+}
+
+func (self *JRPC2Tester) OnWSError(e *events.ErrorEvent) {
+	self.AppendToConnectionLog(
+		self.etc.CreateTextNode(
+			fmt.Sprint("WS error"),
+		),
+	)
+	self.cleanupWSAndNode()
+}
+
+func (self *JRPC2Tester) OnWSMessage(e *events.MessageEvent) {
+	self.AppendToConnectionLog(
+		self.etc.CreateTextNode(
+			fmt.Sprint("WS message"),
+		),
+	)
+
+	// val, err := e.GetData()
+	// self.AppendToConnectionLog(
+	// 	self.etc.CreateElement("pre").
+	// 		AppendChildren(
+	// 			self.etc.CreateTextNode(
+	// 				fmt.Sprint(
+	// 					"val:", val, "err:", err,
+	// 				),
+	// 			),
+	// 		),
+	// )
+
+	{
+		e_data, _ := e.GetData()
+
+		js.Global().Get("console").Call("log", e_data)
+	}
+
+	data, err := ws.GetByteSliceFromWSMessageEvent(e.JSValue)
+	if err != nil {
+		self.AppendToConnectionLogText(
+			"err: problem while obtaining bytes from message:",
+			err,
+		)
+		return
+	}
+
+	proto_err, err := self.node.PushMessageFromOutside(data)
+	if proto_err != nil || err != nil {
+		self.AppendToConnectionLogText(
+			"proto_err:", proto_err,
+			"err:", err,
+		)
+	}
+}
+
+func (self *JRPC2Tester) OnWSOpen(e *events.Event) {
+	self.AppendToConnectionLog(
+		self.etc.CreateTextNode(
+			fmt.Sprint("WS open"),
+		),
+	)
+	self.node = gojsonrpc2.NewJSONRPC2Node()
+	self.node.PushMessageToOutsideCB =
+		func(data []byte) (err error) {
+
+			defer func() {
+				if err != nil {
+					self.AppendToConnectionLogText("err:", err.Error())
+				}
+			}()
+
+			if self.ws == nil {
+				return errors.New("self.ws not set")
+			}
+
+			arr, err := array.NewArrayFromByteSlice(data)
+			if err != nil {
+				return errors.New(
+					"couldn't create new JS array: " + err.Error(),
+				)
+			}
+
+			err = self.ws.Send(arr.JSValue)
+			if self.ws == nil {
+				return errors.New("self.ws.Send() err: " + err.Error())
+			}
+
+			return nil
+		}
+
+	self.button_close.Set("disabled", false)
 }

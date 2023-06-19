@@ -7,8 +7,10 @@ import (
 	"html"
 	"log"
 	"net/http"
+	"reflect"
 	"strings"
 	"sync"
+	"time"
 
 	"golang.org/x/net/websocket"
 
@@ -95,7 +97,62 @@ func (self *Controller) WSHandlerJRPC2(c *websocket.Conn) {
 
 	defer c.Close()
 
-	codec := &websocket.Codec{}
+	codec := &websocket.Codec{
+		Marshal: func(
+			v interface{},
+		) (
+			data []byte,
+			payloadType byte,
+			err error,
+		) {
+			defer func() {
+				fmt.Println(
+					"marshal result: in:", v,
+					"data:", string(data),
+					"type:", payloadType,
+					"err:", err,
+				)
+			}()
+			x, ok := v.([]byte)
+			if !ok {
+				return nil, 0, errors.New("codec: invalid marshal input")
+			}
+			return x, websocket.BinaryFrame, nil
+		},
+		Unmarshal: func(
+			data []byte,
+			payloadType byte,
+			v interface{},
+		) (err error) {
+			fmt.Println(
+				"v type1:", reflect.ValueOf(v).Kind(),
+			)
+			defer func() {
+				fmt.Println(
+					"v type2:", reflect.ValueOf(v).Kind(),
+				)
+				fmt.Println(
+					"unmarshal result: in:", string(data),
+					"v:", v,
+					"type:", payloadType,
+					"err:", err,
+				)
+			}()
+			if payloadType != websocket.BinaryFrame {
+				return errors.New("codec: invalid unmarshal input")
+			}
+			var redirect *[]byte
+			redirect, ok := v.(*[]byte)
+
+			if !ok {
+				return errors.New("codec: invalid unmarshal input: can't redirect v as *[]byte")
+			}
+
+			*redirect = data
+
+			return nil
+		},
+	}
 
 	node := gojsonrpc2.NewJSONRPC2Node()
 	node.OnRequestCB = func(msg *gojsonrpc2.Message) (error, error) {
@@ -139,12 +196,13 @@ func (self *Controller) WSHandlerJRPC2(c *websocket.Conn) {
 
 	go func() {
 		defer wg.Done()
-		var data []byte
-		for true {
+
+		for {
 			if stop_flag {
 				return
 			}
-			data = make([]byte, 0)
+
+			var data []byte
 			err := codec.Receive(c, &data)
 			if err != nil {
 				rec_err = err
@@ -159,6 +217,25 @@ func (self *Controller) WSHandlerJRPC2(c *websocket.Conn) {
 				stop_flag = true
 				return
 			}
+		}
+	}()
+
+	go func() {
+		for {
+			time.Sleep(time.Second)
+			if stop_flag {
+				return
+			}
+			node.SendNotification(
+				&gojsonrpc2.Message{
+					Request: gojsonrpc2.Request{
+						Method: "time",
+						Params: time.Now().UTC().Format(
+							time.RFC3339Nano,
+						),
+					},
+				},
+			)
 		}
 	}()
 
@@ -239,6 +316,6 @@ func main() {
 		TLSConfig: tls_cfg,
 	}
 
-	s.ListenAndServe()
+	log.Fatal(s.ListenAndServeTLS("", ""))
 
 }

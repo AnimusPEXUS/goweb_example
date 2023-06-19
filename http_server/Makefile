@@ -1,4 +1,4 @@
-export GONOPROXY="github.com/AnimusPEXUS/*"
+export GONOPROXY=https://github.com/AnimusPEXUS/*
 
 all: get build
 
@@ -9,7 +9,7 @@ get:
 
 build:
 		$(MAKE) -C static_src build
-		go build -v -x
+		go build
 
 run:
 		./http_server

@@ -1,4 +1,4 @@
-export GONOPROXY="github.com/AnimusPEXUS/*"
+export GONOPROXY=github.com/AnimusPEXUS/*
 export GOOS=js
 export GOARCH=wasm
 
@@ -9,4 +9,4 @@ get:
 		go mod tidy
 
 build:
-		go build -v -x -o ../static/page.wasm
+		go build -o ../static/page.wasm
