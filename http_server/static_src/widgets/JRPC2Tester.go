@@ -52,6 +52,36 @@ func NewJRPC2Tester(
 
 				self.cleanupWSAndNode()
 
+				self.node = gojsonrpc2.NewJSONRPC2Node()
+				self.node.PushMessageToOutsideCB =
+					func(data []byte) (err error) {
+
+						defer func() {
+							if err != nil {
+								self.AppendToConnectionLogText("err:", err.Error())
+							}
+						}()
+
+						if self.ws == nil {
+							return errors.New("self.ws not set")
+						}
+
+						arr, err := array.NewArrayFromByteSlice(data)
+						if err != nil {
+							return errors.New(
+								"couldn't create new JS array: " + err.Error(),
+							)
+						}
+
+						err = self.ws.Send(arr.JSValue)
+						if self.ws == nil {
+							return errors.New("self.ws.Send() err: " + err.Error())
+						}
+
+						return nil
+					}
+				self.node.OnRequestCB = self.onNodeRequest
+
 				self.ws, err = ws.NewWS(
 					&ws.WSOptions{
 						URL: &([]string{"wss://localhost:8080/ws_jrpc2"}[0]),
@@ -212,29 +242,18 @@ func (self *JRPC2Tester) OnWSMessage(e *events.MessageEvent) {
 		),
 	)
 
-	// val, err := e.GetData()
-	// self.AppendToConnectionLog(
-	// 	self.etc.CreateElement("pre").
-	// 		AppendChildren(
-	// 			self.etc.CreateTextNode(
-	// 				fmt.Sprint(
-	// 					"val:", val, "err:", err,
-	// 				),
-	// 			),
-	// 		),
-	// )
-
-	{
-		e_data, _ := e.GetData()
-
-		js.Global().Get("console").Call("log", e_data)
-	}
-
 	data, err := ws.GetByteSliceFromWSMessageEvent(e.JSValue)
 	if err != nil {
 		self.AppendToConnectionLogText(
 			"err: problem while obtaining bytes from message:",
 			err,
+		)
+		return
+	}
+
+	if self.node == nil {
+		self.AppendToConnectionLogText(
+			"err: self.node == nil",
 		)
 		return
 	}
@@ -254,34 +273,19 @@ func (self *JRPC2Tester) OnWSOpen(e *events.Event) {
 			fmt.Sprint("WS open"),
 		),
 	)
-	self.node = gojsonrpc2.NewJSONRPC2Node()
-	self.node.PushMessageToOutsideCB =
-		func(data []byte) (err error) {
-
-			defer func() {
-				if err != nil {
-					self.AppendToConnectionLogText("err:", err.Error())
-				}
-			}()
-
-			if self.ws == nil {
-				return errors.New("self.ws not set")
-			}
-
-			arr, err := array.NewArrayFromByteSlice(data)
-			if err != nil {
-				return errors.New(
-					"couldn't create new JS array: " + err.Error(),
-				)
-			}
-
-			err = self.ws.Send(arr.JSValue)
-			if self.ws == nil {
-				return errors.New("self.ws.Send() err: " + err.Error())
-			}
-
-			return nil
-		}
 
 	self.button_close.Set("disabled", false)
+}
+
+func (self *JRPC2Tester) onNodeRequest(msg *gojsonrpc2.Message) (error, error) {
+	if msg.IsRequestOrNotification() {
+		what := ""
+		if msg.IsNotification() {
+			what = "Notification"
+		} else {
+			what = "Call"
+		}
+		self.AppendToConnectionLogText(fmt.Sprintf("got <%s>: %s(%#v)", what, msg.Method, msg.Params))
+	}
+	return nil, nil
 }

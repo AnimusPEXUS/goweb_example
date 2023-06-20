@@ -3,8 +3,8 @@ module github.com/AnimusPEXUS/goweb_example/http_server/static_src
 go 1.20
 
 require (
-	github.com/AnimusPEXUS/gojsonrpc2 v0.0.0-20230617001335-83cb2e3892dd
-	github.com/AnimusPEXUS/gojstools v0.0.0-20230619110903-04d3df311e79
+	github.com/AnimusPEXUS/gojsonrpc2 v0.0.0-20230620070415-7a2b86fd4804
+	github.com/AnimusPEXUS/gojstools v0.0.0-20230620065542-e9f92e6370fa
 )
 
 require (
