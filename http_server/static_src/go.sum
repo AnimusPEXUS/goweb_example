@@ -1,5 +1,11 @@
+github.com/AnimusPEXUS/goarpcsolution v0.0.0-20230710212508-0eda7d09dc01 h1:OSU8cawb/kcbrqSQiq7+y655IcI1YoKCpwNLEiH7P34=
+github.com/AnimusPEXUS/goarpcsolution v0.0.0-20230710212508-0eda7d09dc01/go.mod h1:8W/UBx9NYtU+PcmslV3LKayHioN92SjLUabzTQbPio0=
+github.com/AnimusPEXUS/goinmemfile v0.0.0-20230615005913-b987d11ee924 h1:bL/hHquPdZe6C3ltW3kzeOOZKMgPTPqtYHWgC1O6sO0=
+github.com/AnimusPEXUS/goinmemfile v0.0.0-20230615005913-b987d11ee924/go.mod h1:1dwjt85DZhL+k0b3meVRsoyfWAhbKCh5gfuZoxU0Gr8=
 github.com/AnimusPEXUS/gojsonrpc2 v0.0.0-20230620070415-7a2b86fd4804 h1:Ea5aamRNCu+uUVh6wp3FDblqHtge40lvWU11ZsQWFbo=
 github.com/AnimusPEXUS/gojsonrpc2 v0.0.0-20230620070415-7a2b86fd4804/go.mod h1:ffLxzbkQn60VxPcz+Dc1XRoLK3Xqvvava9PYRqIVc20=
+github.com/AnimusPEXUS/gojsonrpc2datastreammultiplexer v0.0.0-20230710175307-417e033c5cd0 h1:8b6OD+Zbc1/380eEEdupXdwDcwR9i+srwc75SVl28AI=
+github.com/AnimusPEXUS/gojsonrpc2datastreammultiplexer v0.0.0-20230710175307-417e033c5cd0/go.mod h1:rhTllXJyJI3D11hCYX9B7cIWxJkbC2IftRGs0oxySc0=
 github.com/AnimusPEXUS/gojstools v0.0.0-20230620065542-e9f92e6370fa h1:7C9haLT9rUqybdGJTNS6JSqWI8iOT8bEaMqQQycbPp4=
 github.com/AnimusPEXUS/gojstools v0.0.0-20230620065542-e9f92e6370fa/go.mod h1:AVgTDY5a6VxEl2ljlPMuPuoqGLdceXiEok4EJ/c/WJ0=
 github.com/AnimusPEXUS/golockerreentrancycontext v0.0.0-20230615005534-bc3cdac63710 h1:bRNymswyPDxaeC/C8iIz4dzOcSOwQKZehY7HlKXylxE=
@@ -8,3 +14,5 @@ github.com/AnimusPEXUS/gouuidtools v0.0.0-20230615005111-d4138eef119a h1:EYQuU0e
 github.com/AnimusPEXUS/gouuidtools v0.0.0-20230615005111-d4138eef119a/go.mod h1:kGZCqtUsugQ9V8BgUzsn4602KQKC2j41U8nHO62acBU=
 github.com/AnimusPEXUS/utils v0.0.0-20230615004702-c6d6bfd8bb84 h1:6iGJfOefydaibqTSY5itHXHbFnMRehyVdhHqlVOV1iw=
 github.com/AnimusPEXUS/utils v0.0.0-20230615004702-c6d6bfd8bb84/go.mod h1:wTxCjTsBHYrK2WnlmHOol35DyP1Eh0wsa59KAMp32+U=
+github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
+github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
