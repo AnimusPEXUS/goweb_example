@@ -11,6 +11,8 @@ func main() {
 	log.SetFlags(log.Lshortfile)
 
 	log.Println("ExampleSite loading..")
+	log.Println("  build time:", GOWEB_BUILD_TIME)
+	log.Println("      commit:", GOWEB_BUILD_COMMIT)
 
 	site := widgets.NewSite()
 
