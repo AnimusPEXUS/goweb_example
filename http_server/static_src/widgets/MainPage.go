@@ -24,15 +24,14 @@ func (self *MainPage) RenderMainPage() {
 
 	gt := g.Get("globalThis")
 
-	document := gt.Get("document")
-
-	window_document := dom.NewDocumentFromJsValue(document)
+	document := dom.NewDocumentFromJsValue(gt.Get("document"))
 
 	etc := elementtreeconstructor.NewElementTreeConstructor(
-		window_document,
+		document,
 	)
 
 	jrpc2_tester := NewJRPC2Tester(etc)
+	arpc_tester := NewARPCTester(etc)
 
 	new_html := etc.CreateElement("html").
 		SetStyle("font-size", "10px").
@@ -47,10 +46,17 @@ func (self *MainPage) RenderMainPage() {
 			etc.CreateElement("body").
 				AppendChildren(
 					jrpc2_tester.Element,
+					etc.CreateTextNode(" "),
+					arpc_tester.Element,
 				),
 		)
 
-	etc.ReplaceChildren([]dom.ToNodeConvertable{new_html})
+	etc.ReplaceChildren(
+		[]dom.ToNodeConvertable{
+			document.Implementation().CreateDocumentType("html", "", ""),
+			new_html,
+		},
+	)
 
 	return
 }

@@ -7,7 +7,7 @@ require (
 	github.com/AnimusPEXUS/goinmemfile v0.0.0-20230615005913-b987d11ee924
 	github.com/AnimusPEXUS/gojsonrpc2 v0.0.0-20230620070415-7a2b86fd4804
 	github.com/AnimusPEXUS/gojsonrpc2datastreammultiplexer v0.0.0-20230710175307-417e033c5cd0
-	github.com/AnimusPEXUS/gojstools v0.0.0-20230620065542-e9f92e6370fa
+	github.com/AnimusPEXUS/gojstools v0.0.0-20230712141129-0b9bacdcd9d8
 )
 
 require (

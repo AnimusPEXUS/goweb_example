@@ -144,7 +144,7 @@ func NewARPCTester(
 
 				self.ws, err = ws.NewWS(
 					&ws.WSOptions{
-						URL: &([]string{"wss://localhost:8080/ws_jrpc2"}[0]),
+						URL: &([]string{"wss://localhost:8080/ws_arpc"}[0]),
 
 						OnClose:   self.OnWSClose,
 						OnError:   self.OnWSError,
@@ -230,7 +230,7 @@ func NewARPCTester(
 
 	self.Element.AppendChildren(
 		self.etc.CreateElement("div").AppendChildren(
-			self.etc.CreateTextNode("JSON-RPC 2 testing tool"),
+			self.etc.CreateTextNode("ARPC testing tool"),
 		),
 		self.etc.CreateElement("div").AppendChildren(
 			button_connect,
