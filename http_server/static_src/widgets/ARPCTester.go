@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
 	"syscall/js"
 	"time"
 
@@ -122,7 +123,8 @@ func NewARPCTester(
 				self.arpc.PushMessageToOutsideCB =
 					func(data []byte) (err error) {
 
-						timedout, closed, _, proto_err, err := self.multiplexer.ChannelData(data)
+						timedout, closed, _, proto_err, err :=
+							self.multiplexer.ChannelData(data)
 						if err != nil {
 							return err
 						}
@@ -268,7 +270,7 @@ func (self *ARPCTester) AppendToConnectionLogText(
 	v ...any,
 ) {
 	x := self.etc.CreateTextNode(
-		fmt.Sprint(v...),
+		strings.TrimSpace(fmt.Sprintln(v...)),
 	)
 
 	self.AppendToConnectionLog(x)
@@ -279,7 +281,7 @@ func (self *ARPCTester) AppendToConnectionLogPreText(
 ) {
 	x := self.etc.CreateElement("pre").AppendChildren(
 		self.etc.CreateTextNode(
-			fmt.Sprint(v...),
+			strings.TrimSpace(fmt.Sprintln(v...)),
 		),
 	)
 

@@ -5,16 +5,19 @@ import (
 	"errors"
 	"fmt"
 	"html"
+	"io"
 	"log"
 	"net/http"
-	"reflect"
 	"strings"
 	"sync"
 	"time"
 
 	"golang.org/x/net/websocket"
 
+	"github.com/AnimusPEXUS/goarpcsolution"
+	"github.com/AnimusPEXUS/goinmemfile"
 	"github.com/AnimusPEXUS/gojsonrpc2"
+	"github.com/AnimusPEXUS/gojsonrpc2datastreammultiplexer"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -97,62 +100,7 @@ func (self *Controller) WSHandlerJRPC2(c *websocket.Conn) {
 
 	defer c.Close()
 
-	codec := &websocket.Codec{
-		Marshal: func(
-			v interface{},
-		) (
-			data []byte,
-			payloadType byte,
-			err error,
-		) {
-			defer func() {
-				fmt.Println(
-					"marshal result: in:", v,
-					"data:", string(data),
-					"type:", payloadType,
-					"err:", err,
-				)
-			}()
-			x, ok := v.([]byte)
-			if !ok {
-				return nil, 0, errors.New("codec: invalid marshal input")
-			}
-			return x, websocket.BinaryFrame, nil
-		},
-		Unmarshal: func(
-			data []byte,
-			payloadType byte,
-			v interface{},
-		) (err error) {
-			fmt.Println(
-				"v type1:", reflect.ValueOf(v).Kind(),
-			)
-			defer func() {
-				fmt.Println(
-					"v type2:", reflect.ValueOf(v).Kind(),
-				)
-				fmt.Println(
-					"unmarshal result: in:", string(data),
-					"v:", v,
-					"type:", payloadType,
-					"err:", err,
-				)
-			}()
-			if payloadType != websocket.BinaryFrame {
-				return errors.New("codec: invalid unmarshal input")
-			}
-			var redirect *[]byte
-			redirect, ok := v.(*[]byte)
-
-			if !ok {
-				return errors.New("codec: invalid unmarshal input: can't redirect v as *[]byte")
-			}
-
-			*redirect = data
-
-			return nil
-		},
-	}
+	codec := GenDirectWSCodec()
 
 	node := gojsonrpc2.NewJSONRPC2Node()
 	node.OnRequestCB = func(msg *gojsonrpc2.Message) (error, error) {
@@ -192,7 +140,7 @@ func (self *Controller) WSHandlerJRPC2(c *websocket.Conn) {
 		return nil
 	}
 
-	wg.Add(1)
+	wg.Add(2)
 
 	go func() {
 		defer wg.Done()
@@ -221,6 +169,8 @@ func (self *Controller) WSHandlerJRPC2(c *websocket.Conn) {
 	}()
 
 	go func() {
+		defer wg.Done()
+
 		for {
 			time.Sleep(time.Second)
 			if stop_flag {
@@ -247,14 +197,189 @@ func (self *Controller) WSHandlerJRPC2(c *websocket.Conn) {
 
 }
 
-// func (self *Controller) WasmExamplePage(
-// 	rw http.ResponseWriter,
-// 	rq *http.Request,
-// 	// args map[string]string,
-// ) {
-// 	http.ServeFile(rw, rq, "./static/wasm.html")
-// 	return
-// }
+func (self *Controller) WSHandlerARPC(c *websocket.Conn) {
+
+	defer c.Close()
+
+	codec := GenDirectWSCodec()
+
+	multiplexer :=
+		gojsonrpc2datastreammultiplexer.NewJSONRPC2DataStreamMultiplexer()
+
+	defer multiplexer.Close()
+
+	arpc_basic := goarpcsolution.NewARPCNodeCtlBasic()
+
+	arpc := goarpcsolution.NewARPCNode(arpc_basic)
+
+	defer arpc.Close()
+
+	var (
+		stop_flag     = false
+		rec_err       error
+		send_err      error
+		rec_proto_err error
+	)
+
+	multiplexer.OnIncommingDataTransferComplete = func(ws io.WriteSeeker) {
+
+		if stop_flag {
+			return
+		}
+
+		f, ok := ws.(*goinmemfile.InMemFile)
+		if !ok {
+			panic("programming error")
+		}
+
+		x := f.Buffer
+
+		proto_err, err := arpc.PushMessageFromOutside(x)
+		if proto_err != nil {
+			rec_err = proto_err
+			stop_flag = true
+			return
+		}
+
+		if err != nil {
+			rec_err = err
+			stop_flag = true
+			return
+		}
+	}
+
+	arpc.PushMessageToOutsideCB = func(data []byte) error {
+		timedout, closed, _, proto_err, err :=
+			multiplexer.ChannelData(data)
+		if err != nil {
+			return err
+		}
+
+		if proto_err != nil {
+			return proto_err
+		}
+
+		if timedout {
+			return errors.New("timedout")
+		}
+
+		if closed {
+			return errors.New("closed")
+		}
+
+		return nil
+
+	}
+
+	arpc_basic.OnCallCB = self.HandleARPCCall
+
+	wg := &sync.WaitGroup{}
+
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+
+		for {
+			if stop_flag {
+				return
+			}
+
+			var data []byte
+			err := codec.Receive(c, &data)
+			if err != nil {
+				rec_err = err
+				stop_flag = true
+				return
+			}
+
+			proto_err, err := multiplexer.PushMessageFromOutside(data)
+			if proto_err != nil || err != nil {
+				rec_proto_err = proto_err
+				rec_err = err
+				stop_flag = true
+				return
+			}
+		}
+	}()
+
+	go func() {
+
+	}()
+
+	wg.Wait()
+
+	fmt.Println("rec_err:", rec_err)
+	fmt.Println("send_err:", send_err)
+	fmt.Println("rec_proto_err:", rec_proto_err)
+
+}
+
+func GenDirectWSCodec() *websocket.Codec {
+	codec := &websocket.Codec{
+		Marshal: func(
+			v interface{},
+		) (
+			data []byte,
+			payloadType byte,
+			err error,
+		) {
+			// defer func() {
+			// 	fmt.Println(
+			// 		"marshal result: in:", v,
+			// 		"data:", string(data),
+			// 		"type:", payloadType,
+			// 		"err:", err,
+			// 	)
+			// }()
+			x, ok := v.([]byte)
+			if !ok {
+				return nil, 0, errors.New("codec: invalid marshal input")
+			}
+			return x, websocket.BinaryFrame, nil
+		},
+		Unmarshal: func(
+			data []byte,
+			payloadType byte,
+			v interface{},
+		) (err error) {
+			// fmt.Println(
+			// 	"v type1:", reflect.ValueOf(v).Kind(),
+			// )
+			// defer func() {
+			// 	fmt.Println(
+			// 		"v type2:", reflect.ValueOf(v).Kind(),
+			// 	)
+			// 	fmt.Println(
+			// 		"unmarshal result: in:", string(data),
+			// 		"v:", v,
+			// 		"type:", payloadType,
+			// 		"err:", err,
+			// 	)
+			// }()
+			if payloadType != websocket.BinaryFrame {
+				return errors.New("codec: invalid unmarshal input")
+			}
+			var redirect *[]byte
+			redirect, ok := v.(*[]byte)
+
+			if !ok {
+				return errors.New("codec: invalid unmarshal input: can't redirect v as *[]byte")
+			}
+
+			*redirect = data
+
+			return nil
+		},
+	}
+	return codec
+}
+
+func (self *Controller) HandleARPCCall(
+	call *goarpcsolution.ARPCCall,
+) (error, error) {
+	return nil, nil
+}
 
 func main() {
 
@@ -280,6 +405,19 @@ func main() {
 		) {
 			s := &websocket.Server{}
 			s.Handler = ctl.WSHandlerJRPC2
+			s.ServeHTTP(rw, rq)
+		},
+	)
+
+	router.HandlerFunc(
+		"GET",
+		"/ws_arpc",
+		func(
+			rw http.ResponseWriter,
+			rq *http.Request,
+		) {
+			s := &websocket.Server{}
+			s.Handler = ctl.WSHandlerARPC
 			s.ServeHTTP(rw, rq)
 		},
 	)
@@ -310,8 +448,12 @@ func main() {
 		InsecureSkipVerify: true,
 	}
 
+	addr := ":8080"
+
+	log.Println("address:", addr)
+
 	s := &http.Server{
-		Addr:      ":8080",
+		Addr:      addr,
 		Handler:   router,
 		TLSConfig: tls_cfg,
 	}

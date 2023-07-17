@@ -3,7 +3,7 @@ module github.com/AnimusPEXUS/goweb_example/http_server/static_src
 go 1.20
 
 require (
-	github.com/AnimusPEXUS/goarpcsolution v0.0.0-20230710212508-0eda7d09dc01
+	github.com/AnimusPEXUS/goarpcsolution v0.0.0-20230716130928-ab79bba1c68f
 	github.com/AnimusPEXUS/goinmemfile v0.0.0-20230615005913-b987d11ee924
 	github.com/AnimusPEXUS/gojsonrpc2 v0.0.0-20230620070415-7a2b86fd4804
 	github.com/AnimusPEXUS/gojsonrpc2datastreammultiplexer v0.0.0-20230710175307-417e033c5cd0

@@ -3,6 +3,7 @@ package widgets
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"syscall/js"
 
 	"github.com/AnimusPEXUS/gojsonrpc2"
@@ -186,7 +187,7 @@ func (self *JRPC2Tester) AppendToConnectionLogText(
 	v ...any,
 ) {
 	x := self.etc.CreateTextNode(
-		fmt.Sprint(v...),
+		strings.TrimSpace(fmt.Sprintln(v...)),
 	)
 
 	self.AppendToConnectionLog(x)
@@ -197,7 +198,7 @@ func (self *JRPC2Tester) AppendToConnectionLogPreText(
 ) {
 	x := self.etc.CreateElement("pre").AppendChildren(
 		self.etc.CreateTextNode(
-			fmt.Sprint(v...),
+			strings.TrimSpace(fmt.Sprintln(v...)),
 		),
 	)
 
