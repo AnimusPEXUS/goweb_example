@@ -1,13 +1,13 @@
-github.com/AnimusPEXUS/goarpcsolution v0.0.0-20230716130928-ab79bba1c68f h1:AtnMkgJe7lxtjURlEbR6Ug7fSUMp8ms57z1JQXYBr3k=
-github.com/AnimusPEXUS/goarpcsolution v0.0.0-20230716130928-ab79bba1c68f/go.mod h1:+clfs5BazH46Ysgn/yHtEolOo0B1aYIPwfYbzMUpBGs=
+github.com/AnimusPEXUS/goarpcsolution v0.0.0-20230717161107-3788573e5167 h1:zVZvIHalX9UL9+AAl4N0mbRGz2u00OqJ8idb0Z1MDDA=
+github.com/AnimusPEXUS/goarpcsolution v0.0.0-20230717161107-3788573e5167/go.mod h1:+clfs5BazH46Ysgn/yHtEolOo0B1aYIPwfYbzMUpBGs=
 github.com/AnimusPEXUS/goinmemfile v0.0.0-20230615005913-b987d11ee924 h1:bL/hHquPdZe6C3ltW3kzeOOZKMgPTPqtYHWgC1O6sO0=
 github.com/AnimusPEXUS/goinmemfile v0.0.0-20230615005913-b987d11ee924/go.mod h1:1dwjt85DZhL+k0b3meVRsoyfWAhbKCh5gfuZoxU0Gr8=
 github.com/AnimusPEXUS/gojsonrpc2 v0.0.0-20230620070415-7a2b86fd4804 h1:Ea5aamRNCu+uUVh6wp3FDblqHtge40lvWU11ZsQWFbo=
 github.com/AnimusPEXUS/gojsonrpc2 v0.0.0-20230620070415-7a2b86fd4804/go.mod h1:ffLxzbkQn60VxPcz+Dc1XRoLK3Xqvvava9PYRqIVc20=
 github.com/AnimusPEXUS/gojsonrpc2datastreammultiplexer v0.0.0-20230710175307-417e033c5cd0 h1:8b6OD+Zbc1/380eEEdupXdwDcwR9i+srwc75SVl28AI=
 github.com/AnimusPEXUS/gojsonrpc2datastreammultiplexer v0.0.0-20230710175307-417e033c5cd0/go.mod h1:rhTllXJyJI3D11hCYX9B7cIWxJkbC2IftRGs0oxySc0=
-github.com/AnimusPEXUS/golockerreentrancycontext v0.0.0-20230615005534-bc3cdac63710 h1:bRNymswyPDxaeC/C8iIz4dzOcSOwQKZehY7HlKXylxE=
-github.com/AnimusPEXUS/golockerreentrancycontext v0.0.0-20230615005534-bc3cdac63710/go.mod h1:MVQsxAvekQWhuo4s0F+N2PxVeTOGqUwQgXATWa2IggI=
+github.com/AnimusPEXUS/golockerreentrancycontext v0.0.0-20230717161346-c957a5cf3eba h1:zP2C4sIEn0tQLOzo+l2IZdVDweaM4y8mXtiBVjJTRJo=
+github.com/AnimusPEXUS/golockerreentrancycontext v0.0.0-20230717161346-c957a5cf3eba/go.mod h1:MVQsxAvekQWhuo4s0F+N2PxVeTOGqUwQgXATWa2IggI=
 github.com/AnimusPEXUS/gouuidtools v0.0.0-20230615005111-d4138eef119a h1:EYQuU0e4fW8doA2czb/rlpMrRI1GWvmxI58nRd/HuAI=
 github.com/AnimusPEXUS/gouuidtools v0.0.0-20230615005111-d4138eef119a/go.mod h1:kGZCqtUsugQ9V8BgUzsn4602KQKC2j41U8nHO62acBU=
 github.com/AnimusPEXUS/utils v0.0.0-20230615004702-c6d6bfd8bb84 h1:6iGJfOefydaibqTSY5itHXHbFnMRehyVdhHqlVOV1iw=
