@@ -196,11 +196,13 @@ func (self *JRPC2Tester) AppendToConnectionLogText(
 func (self *JRPC2Tester) AppendToConnectionLogPreText(
 	v ...any,
 ) {
-	x := self.etc.CreateElement("pre").AppendChildren(
-		self.etc.CreateTextNode(
-			strings.TrimSpace(fmt.Sprintln(v...)),
-		),
-	)
+	x := self.etc.CreateElement("pre").
+		SetStyle("white-space", "pre-wrap").
+		AppendChildren(
+			self.etc.CreateTextNode(
+				strings.TrimSpace(fmt.Sprintln(v...)),
+			),
+		)
 
 	self.AppendToConnectionLog(x)
 }
