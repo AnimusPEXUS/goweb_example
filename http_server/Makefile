@@ -1,4 +1,4 @@
-export GONOPROXY=https://github.com/AnimusPEXUS/*
+export GONOPROXY=github.com/AnimusPEXUS/*
 
 all: get build
 
